@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\svena\\OneDrive\\Visual Studio\\Current Projects\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
+      "projectUniqueName": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
       "projectName": "DataSerializer",
-      "projectPath": "C:\\Users\\svena\\OneDrive\\Visual Studio\\Current Projects\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
+      "projectPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
       "packagesPath": "C:\\Users\\svena\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\svena\\OneDrive\\Visual Studio\\Current Projects\\DataSerializer\\DataSerializer\\obj\\",
+      "outputPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
