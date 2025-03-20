@@ -4,19 +4,19 @@
     {
         static void Main(string[] args)
         {
-            DataSerializer dataSerializer = new DataSerializer(true, "Hello", "Moahahah");
+            DataSerializer dataSerializer = new DataSerializer(true, true, "Hello", "Moahahah");
 
-            string filePath = "file.txt";
+            string filePath = dataSerializer.GetWritableAbsolutePath("Test/Life");
             List<string> input = new List<string>();
 
             for (int i = 0; i < 3; i++)
             {
                 input.Add(Console.ReadLine());
             }
-            dataSerializer.SerializeListData<string>(input, filePath, true);
+            dataSerializer.SerializeData<List<string>>(input, filePath, false);
 
             List<string> output = new List<string>();
-            output = dataSerializer.DeserializeData<List<string>>(filePath, true);
+            output = dataSerializer.DeserializeData<List<string>>(filePath, false);
             foreach (string item in output)
             {
                 Console.WriteLine(item);
