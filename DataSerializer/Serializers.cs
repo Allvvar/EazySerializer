@@ -8,8 +8,8 @@ namespace DataSerializer
 {
     // Author: Alvar  
     // Written on: 2025-03-19 21:53  
-    // Last Modified: 2025-03-20 21:17  
-    // Version: 1.2
+    // Last Modified: 2025-03-20 22:17
+    // Version: 1.2.1
     /// <summary>
     /// The DataSerializer class provides methods for serializing and deserializing objects,
     /// with optional AES encryption. It supports pretty-printing JSON output and cross-platform
@@ -218,8 +218,6 @@ namespace DataSerializer
         {
             // Resolve the file path to a writable absolute path for cross-platform compatibility.
             filePath = GetWritableAbsolutePath(filePath);
-            // Ensure the directory exists (this can help in some edge cases, though typically the file should exist).
-            EnsureDirectoryExists(filePath);
 
             try
             {
