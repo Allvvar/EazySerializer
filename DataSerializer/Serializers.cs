@@ -8,8 +8,8 @@ namespace DataSerializer
 {
     // Author: Alvar  
     // Written on: 2025-03-19 21:53  
-    // Last Modified: 2025-03-20 22:17
-    // Version: 1.2.1
+    // Last Modified: 2025-03-23 19:51
+    // Version: 1.2.2
     /// <summary>
     /// The DataSerializer class provides methods for serializing and deserializing objects,
     /// with optional AES encryption. It supports pretty-printing JSON output and cross-platform
@@ -21,62 +21,76 @@ namespace DataSerializer
         private readonly byte[] _aesKey;
         private readonly byte[] _aesIV;
 
-        // Indicates whether a "super secure" full 32-byte hash should be used for the encryption key.
-        private readonly bool _superSecure;
+        // Determines if the serialized data should be encrypted.
+        private readonly bool _useEncryption;
 
         // Determines if the JSON output should be formatted in a human-readable (pretty-printed) style.
         private readonly bool _prettyPrint;
-
-        #region Logging
 
         /// <summary>
         /// A list of log messages and exceptions that occurred during serialization or deserialization.
         /// This requires Tuple support in C# 7.0 or later, or a custom class for the same purpose.
         /// </summary>
-        public List<(string? message, Exception? ex)> Log { get; private set; } = new List<(string? message, Exception? ex)>();
-
-        #endregion Logging
+        public readonly List<(string? message, Exception? ex)> Log = new List<(string? message, Exception? ex)>();
 
         #region Constructors
+
+        #region Encryption Constructors
 
         /// <summary>
         /// Initializes a new instance of the DataSerializer class with the specified encryption settings.
         /// </summary>
-        /// <param name="superSecure">If true, a full 32-byte hash is used; otherwise, only the first 16 bytes are used.</param>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
-        /// <param name="aesKey">The AES encryption key as a byte array.</param>
+        /// <param name="aesKey">The AES encryption key as a byte array (32 Bytes = AES128, 16 Bytes = AES256).</param>
         /// <param name="aesIV">The AES encryption initialization vector as a byte array.</param>
-        public DataSerializer(bool superSecure, bool prettyPrint, byte[] aesKey, byte[] aesIV)
+        public DataSerializer(bool prettyPrint, byte[] aesKey, byte[] aesIV)
         {
-            _superSecure = superSecure;
+            _useEncryption = true;
             _prettyPrint = prettyPrint;
             _aesKey = aesKey;
             _aesIV = aesIV;
         }
 
         /// <summary>
-        /// Initializes a new instance of the DataSerializer class using string representations of the key and IV.
+        /// Initializes a new instance of the DataSerializer class using encryption with string representations of the key and IV.
         /// </summary>
         /// <param name="superSecure">If true, a full 32-byte hash is used; otherwise, only the first 16 bytes are used.</param>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
         /// <param name="aesKey">The AES encryption key as a string.</param>
         /// <param name="aesIV">The AES encryption initialization vector as a string.</param>
-        /// <param name="logger">An ILogger instance for logging messages.</param>
         public DataSerializer(bool superSecure, bool prettyPrint, string aesKey, string aesIV)
-            : this(superSecure, prettyPrint, ComputeSHA2Hash(aesKey, superSecure), ComputeSHA2Hash(aesIV, false))
-        { }
+            : this(prettyPrint, ComputeSHA2Hash(aesKey, superSecure), ComputeSHA2Hash(aesIV, false))
+        {
+            _useEncryption = true;
+        }
 
         /// <summary>
-        /// Initializes a new instance of the DataSerializer class using integer representations of the key and IV.
+        /// Initializes a new instance of the DataSerializer class using encryption with integer representations of the key and IV.
         /// </summary>
         /// <param name="superSecure">If true, a full 32-byte hash is used; otherwise, only the first 16 bytes are used.</param>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
         /// <param name="aesKey">The AES encryption key as an integer.</param>
         /// <param name="aesIV">The AES encryption initialization vector as an integer.</param>
-        /// <param name="logger">An ILogger instance for logging messages.</param>
         public DataSerializer(bool superSecure, bool prettyPrint, int aesKey, int aesIV)
-            : this(superSecure, prettyPrint, ComputeSHA2Hash(aesKey.ToString(), superSecure), ComputeSHA2Hash(aesIV.ToString(), false))
-        { }
+            : this(prettyPrint, ComputeSHA2Hash(aesKey.ToString(), superSecure), ComputeSHA2Hash(aesIV.ToString(), false))
+        {
+            _useEncryption = true;
+        }
+
+        #endregion Encryption Constructors
+
+        #region Non-Encryption Constructors
+
+        /// <summary>
+        /// Initializes a new instance of the DataSerializer class without encryption.
+        /// </summary>
+        /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
+        public DataSerializer(bool prettyPrint) : this(prettyPrint, new byte[0], new byte[0])
+        {
+            _useEncryption = false;
+        }
+
+        #endregion Non-Encryption Constructors
 
         #endregion Constructors
 
@@ -154,10 +168,8 @@ namespace DataSerializer
         /// <param name="success">
         /// Out parameter set to true if serialization was successful; otherwise false.
         /// </param>
-        public void SerializeData<T>(T data, string filePath, bool useEncryption, out bool success)
+        public void SerializeData<T>(T data, string filePath, out bool success)
         {
-            // Resolve the file path to a writable absolute path for cross-platform compatibility.
-            filePath = GetWritableAbsolutePath(filePath);
             // Ensure the directory structure exists before attempting to write the file.
             EnsureDirectoryExists(filePath);
 
@@ -168,7 +180,7 @@ namespace DataSerializer
                 var options = new JsonSerializerOptions { WriteIndented = _prettyPrint };
                 byte[] dataToSerialize = JsonSerializer.SerializeToUtf8Bytes(data, options);
 
-                if (useEncryption)
+                if (_useEncryption)
                 {
                     // Encrypt the data and write the encrypted bytes.
                     byte[] encryptedData = EncryptData(dataToSerialize);
@@ -198,10 +210,10 @@ namespace DataSerializer
         /// <param name="data">The object to serialize.</param>
         /// <param name="filePath">The relative file path where the data will be saved.</param>
         /// <param name="useEncryption">If true, the serialized data will be encrypted before saving.</param>
-        public void SerializeData<T>(T data, string filePath, bool useEncryption = false)
+        public void SerializeData<T>(T data, string filePath)
         {
             // Call the overload that returns an out bool and ignore the flag.
-            SerializeData(data, filePath, useEncryption, out bool _);
+            SerializeData(data, filePath, out bool _);
         }
 
         /// <summary>
@@ -214,19 +226,16 @@ namespace DataSerializer
         /// Out parameter set to true if deserialization was successful; otherwise false.
         /// </param>
         /// <returns>The deserialized object, or the default value of T if an error occurs.</returns>
-        public T DeserializeData<T>(string filePath, bool useEncryption, out bool success)
+        public T? DeserializeData<T>(string filePath, out bool success)
         {
-            // Resolve the file path to a writable absolute path for cross-platform compatibility.
-            filePath = GetWritableAbsolutePath(filePath);
-
             try
             {
                 using FileStream fs = new(filePath, FileMode.Open);
                 byte[] fileData = new byte[fs.Length];
                 fs.Read(fileData, 0, (int)fs.Length);
 
-                byte[] dataToDeserialize = useEncryption ? DecryptData(fileData) : fileData;
-                Log.Add((useEncryption ? $"Data successfully decrypted from {filePath}" : $"Data successfully deserialized from {filePath}", null));
+                byte[] dataToDeserialize = _useEncryption ? DecryptData(fileData) : fileData;
+                Log.Add((_useEncryption ? $"Data successfully decrypted from {filePath}" : $"Data successfully deserialized from {filePath}", null));
 
                 success = true;
                 return JsonSerializer.Deserialize<T>(dataToDeserialize);
@@ -246,10 +255,10 @@ namespace DataSerializer
         /// <param name="filePath">The relative file path from which the data will be read.</param>
         /// <param name="useEncryption">If true, the data will be decrypted after reading from the file.</param>
         /// <returns>The deserialized object, or the default value of T if an error occurs.</returns>
-        public T DeserializeData<T>(string filePath, bool useEncryption = false)
+        public T? DeserializeData<T>(string filePath)
         {
             // Call the overload that returns an out bool and ignore the flag.
-            return DeserializeData<T>(filePath, useEncryption, out bool _);
+            return DeserializeData<T>(filePath, out bool _);
         }
 
         #endregion Serialization Methods
@@ -275,7 +284,7 @@ namespace DataSerializer
         {
             try
             {
-                string directoryPath = Path.GetDirectoryName(filePath);
+                string? directoryPath = Path.GetDirectoryName(filePath);
                 if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
@@ -284,7 +293,7 @@ namespace DataSerializer
             }
             catch (Exception ex)
             {
-                Log.Add(("An error occurred while ensuring directory existence for {filePath}", ex));
+                Log.Add(($"An error occurred while ensuring directory existence for {filePath}", ex));
             }
         }
 
