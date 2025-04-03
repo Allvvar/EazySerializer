@@ -44,41 +44,70 @@ Below is a sample code snippet demonstrating how to use the **EazySerializer** c
 
 ```csharp
 // Example class to be serialized
-public class MyClass
+class SerializebleClass
 {
-    public string Property1 { get; set; }
-    public int Property2 { get; set; }
+    public int? number { get; set; }
+    public string? name { get; set; }
+    public string? description { get; set; }
+    
+    public List<string> tags { get; set; } = new List<string>();
+
+    public double floatNumber; // Field.
+
+    public override string ToString()
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (number != null)
+            sb.AppendLine("Number: " + number.ToString());
+        if (number != null)
+            sb.AppendLine("Name: " + name.ToString());
+        if (number != null)
+            sb.AppendLine("Description: " + description.ToString());
+        sb.AppendLine("FloatNumber: " + floatNumber.ToString());
+
+        sb.AppendLine("Tags:");
+        foreach (var tag in tags)
+        {
+            sb.AppendLine(tag.ToString());
+        }
+
+        return sb.ToString();
+    }
 }
 
-// Create an instance of EazySerializer with encryption enabled and pretty-printing turned on.
-EazySerializer serializer = new EazySerializer(
-    superSecure: true,
-    prettyPrint: true,
-    aesKey: "YourEncryptionKey",
-    aesIV: "YourEncryptionIV"
-);
 
-// Create sample data to serialize
-List<MyClass> myData = new List<MyClass>
+internal class Program
 {
-    new MyClass { Property1 = "Value1", Property2 = 123 },
-    new MyClass { Property1 = "Value2", Property2 = 456 }
-};
+    static void Main(string[] args)
+    {
+        var dataSerializer = new EazySerializer(true, true, true, true); // Does not use encryption.
 
-// Serialize data to file with encryption
-serializer.SerializeData(myData, "data.json", useEncryption: true);
+        string filePath = dataSerializer.GetWritableAbsolutePath("Test/SaveTest/Text.txt");
 
-// Deserialize data from file; using the overload that returns a success flag.
-bool operationSuccess;
-List<MyClass> deserializedData = serializer.DeserializeData<List<MyClass>>("data.json", useEncryption: true, out operationSuccess);
+        var obj = new SerializebleClass();
+        obj.number = 423;
+        obj.name = "A PERSON";
+        obj.description = "I think this is rather smart, what is this thing, but a text writen into a test class";
+        obj.floatNumber = 3.141592653589793243243223542534234523424345432234423;
 
-if (operationSuccess)
-{
-    Console.WriteLine("Deserialization succeeded!");
-}
-else
-{
-    Console.WriteLine("Deserialization failed.");
+        obj.tags = new List<string>
+        {
+            "Thing",
+            "Other Thing",
+            "Pi is just half of Tau",
+            "Tau is superior, if you dont know anything..."
+        };
+
+        dataSerializer.WriteData<SerializebleClass>(obj, filePath);
+
+        var readObj = dataSerializer.ReadData<SerializebleClass>(filePath);
+
+        Console.WriteLine(readObj.ToString());
+
+        // Returns number representing OS.
+        Console.WriteLine("The OS is: " + dataSerializer.GetOperatingSystem());
+    }
 }
 ```
 
