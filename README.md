@@ -1,8 +1,8 @@
-# DataSerializer Class
+# EazySerializer Class
 
 ## Overview
 
-The **DataSerializer** class is a robust and flexible utility for handling data persistence in .NET applications. It provides methods to serialize any JSON-serializable object—including individual objects, collections, and complex nested types—to a file and to deserialize data back into objects. Built entirely with standard .NET libraries, it leverages `System.Text.Json` for JSON processing and supports optional AES encryption for securing sensitive data.
+The **EazySerializer** class is a robust and flexible utility for handling data persistence in .NET applications. It provides methods to serialize any JSON-serializable object—including individual objects, collections, and complex nested types—to a file and to deserialize data back into objects. Built entirely with standard .NET libraries, it leverages `System.Text.Json` for JSON processing and supports optional AES encryption for securing sensitive data.
 
 I plan to add support for other formats like XML and Binary. For now, it only includes JSON serialization.
 
@@ -28,7 +28,7 @@ I plan to add support for other formats like XML and Binary. For now, it only in
 
 ## .NET Version Compatibility
 
-The DataSerializer class is compatible with the following .NET versions:
+The EazySerializer class is compatible with the following .NET versions:
 
 - **.NET Core:**  
   .NET Core 3.0 and higher (including .NET 5.0, .NET 6.0, .NET 7.0, and later), this is required due to the use of nullable reference types and other modern C# features such as Tuples.
@@ -40,7 +40,7 @@ This class leverages features introduced in C# 7.0 (for Tuples) and C# 8.0 (for 
 
 ## Usage Example
 
-Below is a sample code snippet demonstrating how to use the **DataSerializer** class:
+Below is a sample code snippet demonstrating how to use the **EazySerializer** class:
 
 ```csharp
 // Example class to be serialized
@@ -50,8 +50,8 @@ public class MyClass
     public int Property2 { get; set; }
 }
 
-// Create an instance of DataSerializer with encryption enabled and pretty-printing turned on.
-DataSerializer serializer = new DataSerializer(
+// Create an instance of EazySerializer with encryption enabled and pretty-printing turned on.
+EazySerializer serializer = new EazySerializer(
     superSecure: true,
     prettyPrint: true,
     aesKey: "YourEncryptionKey",
