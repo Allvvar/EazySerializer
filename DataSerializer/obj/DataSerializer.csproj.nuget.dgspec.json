@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj": {}
+    "C:\\Users\\svena\\source\\repos\\Allvvar\\EazySerializer\\DataSerializer\\DataSerializer.csproj": {}
   },
   "projects": {
-    "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj": {
+    "C:\\Users\\svena\\source\\repos\\Allvvar\\EazySerializer\\DataSerializer\\DataSerializer.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
+        "projectUniqueName": "C:\\Users\\svena\\source\\repos\\Allvvar\\EazySerializer\\DataSerializer\\DataSerializer.csproj",
         "projectName": "DataSerializer",
-        "projectPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\DataSerializer.csproj",
+        "projectPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\EazySerializer\\DataSerializer\\DataSerializer.csproj",
         "packagesPath": "C:\\Users\\svena\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\DataSerializer\\DataSerializer\\obj\\",
+        "outputPath": "C:\\Users\\svena\\source\\repos\\Allvvar\\EazySerializer\\DataSerializer\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -43,9 +43,9 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -66,7 +66,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.201/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

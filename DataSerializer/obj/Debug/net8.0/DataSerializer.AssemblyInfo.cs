@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DataSerializer")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4b3ea88ee5e133c67baa6ca301d4ec69c7a070b2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+84c80fedc741b7ca1ccc80fc9556bc134b112ee4")]
 [assembly: System.Reflection.AssemblyProductAttribute("DataSerializer")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DataSerializer")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

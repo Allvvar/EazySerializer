@@ -3,19 +3,23 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
-namespace DataSerializer
+namespace EazyDataSerializer
 {
     // Author: Alvar  
     // Written on: 2025-03-19 21:53  
-    // Last Modified: 2025-03-23 19:51
-    // Version: 1.2.2
+    // Last Modified: 2025-04-03 23:59
+    // Version: 1.2.4
+
+    #nullable enable
+
     /// <summary>
-    /// The DataSerializer class provides methods for serializing and deserializing objects,
-    /// with optional AES encryption. It supports pretty-printing JSON output and cross-platform
-    /// file path handling for writing data to a writable location.
+    /// The EazySerializer class provides methods for serializing and deserializing objects,
+    /// with optional AES encryption. And writing them to a filepath. 
+    /// It supports pretty-printing JSON output and cross-platform filepath handling for writing data to a writable location.
     /// </summary>
-    public class DataSerializer
+    public class EazySerializer
     {
         // AES encryption key and IV used for encrypting/decrypting data.
         private readonly byte[] _aesKey;
@@ -24,8 +28,8 @@ namespace DataSerializer
         // Determines if the serialized data should be encrypted.
         private readonly bool _useEncryption;
 
-        // Determines if the JSON output should be formatted in a human-readable (pretty-printed) style.
-        private readonly bool _prettyPrint;
+        //  JsonSerializer Options
+        private readonly JsonSerializerOptions _options;
 
         /// <summary>
         /// A list of log messages and exceptions that occurred during serialization or deserialization.
@@ -41,14 +45,24 @@ namespace DataSerializer
         /// Initializes a new instance of the DataSerializer class with the specified encryption settings.
         /// </summary>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
+        /// <param name="includeFields">If true, includes fields and properties when writing json object.</param>
+        /// <param name="propertyCaseInsensitive">If true, properties are writen case insensetive.</param>
         /// <param name="aesKey">The AES encryption key as a byte array (32 Bytes = AES128, 16 Bytes = AES256).</param>
         /// <param name="aesIV">The AES encryption initialization vector as a byte array.</param>
-        public DataSerializer(bool prettyPrint, byte[] aesKey, byte[] aesIV)
+        public EazySerializer(byte[] aesKey, byte[] aesIV, bool prettyPrint = true, bool includeFields = false, bool propertyCaseInsensitive = false, bool ignoreReadOnly = false)
         {
             _useEncryption = true;
-            _prettyPrint = prettyPrint;
             _aesKey = aesKey;
             _aesIV = aesIV;
+
+            _options = new JsonSerializerOptions()
+            {
+                WriteIndented = prettyPrint,
+                IncludeFields = includeFields,
+                PropertyNameCaseInsensitive = true,
+                IgnoreReadOnlyFields = ignoreReadOnly,
+                IgnoreReadOnlyProperties = ignoreReadOnly
+            };
         }
 
         /// <summary>
@@ -56,10 +70,12 @@ namespace DataSerializer
         /// </summary>
         /// <param name="superSecure">If true, a full 32-byte hash is used; otherwise, only the first 16 bytes are used.</param>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
+        /// <param name="includeFields">If true, includes fields and properties when writing json object.</param>
+        /// <param name="propertyCaseInsensitive">If true, properties are writen case insensetive.</param>
         /// <param name="aesKey">The AES encryption key as a string.</param>
         /// <param name="aesIV">The AES encryption initialization vector as a string.</param>
-        public DataSerializer(bool superSecure, bool prettyPrint, string aesKey, string aesIV)
-            : this(prettyPrint, ComputeSHA2Hash(aesKey, superSecure), ComputeSHA2Hash(aesIV, false))
+        public EazySerializer(string aesKey, string aesIV, bool superSecure = false, bool prettyPrint = false, bool includeFields = false, bool propertyCaseInsensitive = false, bool ignoreReadOnly = false)
+            : this(ComputeSHA2Hash(aesKey, superSecure), ComputeSHA2Hash(aesIV, false), prettyPrint, includeFields, propertyCaseInsensitive, ignoreReadOnly)
         {
             _useEncryption = true;
         }
@@ -69,10 +85,12 @@ namespace DataSerializer
         /// </summary>
         /// <param name="superSecure">If true, a full 32-byte hash is used; otherwise, only the first 16 bytes are used.</param>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
+        /// <param name="includeFields">If true, includes fields and properties when writing json object.</param>
+        /// <param name="propertyCaseInsensitive">If true, properties are writen case insensetive.</param>
         /// <param name="aesKey">The AES encryption key as an integer.</param>
         /// <param name="aesIV">The AES encryption initialization vector as an integer.</param>
-        public DataSerializer(bool superSecure, bool prettyPrint, int aesKey, int aesIV)
-            : this(prettyPrint, ComputeSHA2Hash(aesKey.ToString(), superSecure), ComputeSHA2Hash(aesIV.ToString(), false))
+        public EazySerializer(long aesKey, long aesIV, bool superSecure = false, bool prettyPrint = false, bool includeFields = false, bool propertyCaseInsensitive = false, bool ignoreReadOnly = false)
+            : this(ComputeSHA2Hash(aesKey.ToString(), superSecure), ComputeSHA2Hash(aesIV.ToString(), false), prettyPrint, includeFields, propertyCaseInsensitive, ignoreReadOnly)
         {
             _useEncryption = true;
         }
@@ -85,7 +103,10 @@ namespace DataSerializer
         /// Initializes a new instance of the DataSerializer class without encryption.
         /// </summary>
         /// <param name="prettyPrint">If true, JSON output will be indented (pretty printed).</param>
-        public DataSerializer(bool prettyPrint) : this(prettyPrint, new byte[0], new byte[0])
+        /// <param name="includeFields">If true, includes fields and properties when writing json object.</param>
+        /// <param name="propertyCaseInsensitive">If true, properties are writen case insensetive.</param>
+        public EazySerializer(bool prettyPrint = false, bool includeFields = false, bool propertyCaseInsensitive = false, bool ignoreReadOnly = false) 
+            : this (new byte[0], new byte[0], prettyPrint, includeFields, propertyCaseInsensitive, ignoreReadOnly)
         {
             _useEncryption = false;
         }
@@ -140,6 +161,7 @@ namespace DataSerializer
         /// </summary>
         /// <param name="input">The input string to hash.</param>
         /// <param name="superSecure">Determines whether to use the full 32-byte hash.</param>
+        /// <param name="options">Overides JsonSerializerOptions.</param>
         /// <returns>A byte array representing the computed hash.</returns>
         private static byte[] ComputeSHA2Hash(string input, bool superSecure)
         {
@@ -164,11 +186,11 @@ namespace DataSerializer
         /// <typeparam name="T">The type of the object to serialize.</typeparam>
         /// <param name="data">The object to serialize.</param>
         /// <param name="filePath">The relative file path where the data will be saved.</param>
-        /// <param name="useEncryption">If true, the serialized data will be encrypted before saving.</param>
         /// <param name="success">
+        /// <param name="options">Overides JsonSerializerOptions.</param>
         /// Out parameter set to true if serialization was successful; otherwise false.
         /// </param>
-        public void SerializeData<T>(T data, string filePath, out bool success)
+        public void WriteData<T>(T data, string filePath, out bool success, JsonSerializerOptions options = null)
         {
             // Ensure the directory structure exists before attempting to write the file.
             EnsureDirectoryExists(filePath);
@@ -177,8 +199,7 @@ namespace DataSerializer
             {
                 using FileStream fs = new(filePath, FileMode.Create);
                 // Set JSON serializer options to enable pretty-printing if configured.
-                var options = new JsonSerializerOptions { WriteIndented = _prettyPrint };
-                byte[] dataToSerialize = JsonSerializer.SerializeToUtf8Bytes(data, options);
+                byte[] dataToSerialize = JsonSerializer.SerializeToUtf8Bytes(data, _options);
 
                 if (_useEncryption)
                 {
@@ -209,11 +230,11 @@ namespace DataSerializer
         /// <typeparam name="T">The type of the object to serialize.</typeparam>
         /// <param name="data">The object to serialize.</param>
         /// <param name="filePath">The relative file path where the data will be saved.</param>
-        /// <param name="useEncryption">If true, the serialized data will be encrypted before saving.</param>
-        public void SerializeData<T>(T data, string filePath)
+        /// <param name="options">Overides JsonSerializerOptions.</param>
+        public void WriteData<T>(T data, string filePath, JsonSerializerOptions options = null)
         {
             // Call the overload that returns an out bool and ignore the flag.
-            SerializeData(data, filePath, out bool _);
+            WriteData(data, filePath, out bool _, options);
         }
 
         /// <summary>
@@ -221,12 +242,12 @@ namespace DataSerializer
         /// </summary>
         /// <typeparam name="T">The type of the object to deserialize.</typeparam>
         /// <param name="filePath">The relative file path from which the data will be read.</param>
-        /// <param name="useEncryption">If true, the data will be decrypted after reading from the file.</param>
         /// <param name="success">
+        /// <param name="options">Overides JsonSerializerOptions.</param>
         /// Out parameter set to true if deserialization was successful; otherwise false.
         /// </param>
         /// <returns>The deserialized object, or the default value of T if an error occurs.</returns>
-        public T? DeserializeData<T>(string filePath, out bool success)
+        public T? ReadData<T>(string filePath, out bool success, JsonSerializerOptions options = null)
         {
             try
             {
@@ -237,8 +258,10 @@ namespace DataSerializer
                 byte[] dataToDeserialize = _useEncryption ? DecryptData(fileData) : fileData;
                 Log.Add((_useEncryption ? $"Data successfully decrypted from {filePath}" : $"Data successfully deserialized from {filePath}", null));
 
+
+
                 success = true;
-                return JsonSerializer.Deserialize<T>(dataToDeserialize);
+                return JsonSerializer.Deserialize<T>(dataToDeserialize, _options);
             }
             catch (Exception ex)
             {
@@ -255,10 +278,10 @@ namespace DataSerializer
         /// <param name="filePath">The relative file path from which the data will be read.</param>
         /// <param name="useEncryption">If true, the data will be decrypted after reading from the file.</param>
         /// <returns>The deserialized object, or the default value of T if an error occurs.</returns>
-        public T? DeserializeData<T>(string filePath)
+        public T? ReadData<T>(string filePath, JsonSerializerOptions options = null)
         {
             // Call the overload that returns an out bool and ignore the flag.
-            return DeserializeData<T>(filePath, out bool _);
+            return ReadData<T>(filePath, out bool _, options);
         }
 
         #endregion Serialization Methods
